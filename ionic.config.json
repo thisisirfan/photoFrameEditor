@@ -1,0 +1,7 @@
+{
+  "name": "frameeditor",
+  "integrations": {
+    "cordova": {}
+  },
+  "type": "angular"
+}
