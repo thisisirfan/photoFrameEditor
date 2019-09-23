@@ -1,0 +1,46 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/home"></ion-back-button>
+        </ion-buttons>
+        <ion-title>
+            Editor
+        </ion-title>
+        <ion-button slot="end" size="small" fill="clear" (click)="selectImage()">
+            <ion-icon size="large" name="camera"></ion-icon>
+        </ion-button>
+    </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <div id="action-btn" text-center>
+        <ion-button size="small" *ngIf="enablePreview" color="secondary" (click)="compileEditing()">
+            Preview
+            <ion-icon name="eye"></ion-icon>
+        </ion-button>
+        <ion-button size="small" *ngIf="enableReset" color="light" (click)="resetImage()">
+            Reset
+            <ion-icon name="refresh"></ion-icon>
+        </ion-button>
+        <!-- <ion-button color="light" (click)="clearCanvas()">
+            <ion-icon name="trash"></ion-icon>
+        </ion-button> -->
+    </div>
+    <!-- <img *ngIf="finalImage" [src]="finalImage" alt="final-image" id="final-image"> -->
+    <canvas #photocanvas></canvas>
+    <div id="frame-wrapper1" [ngStyle]="{'max-height': frameMeta.height+'px','max-width': frameMeta.width+'px'}">
+        <img [src]="currentFrame" alt="final-image" id="frame-img">
+        <div id="gesture-area" [ngStyle]="{'height': ImageMeta.height+'px','width': ImageMeta.width+'px'}" class="draggable">
+            <img src="assets/images/flower.png" id="scale-element">
+        </div>
+        <img [src]="sourceImage" id="img-element-orig">
+    </div>
+    <div class="frame-slide-wrapper" [ngClass]="{'bottomSheetOpen': bottomSheetOpen}">
+        <ion-icon (click)="toggleBottomSheet()" name="ios-menu"></ion-icon>
+        <ion-slides pager="true" [options]="slideOpts">
+            <ion-slide *ngFor="let frame of frames" (click)="selectFrame(frame)">
+                <img src="assets/images/frames/{{frame}}" alt="frame">
+            </ion-slide>
+        </ion-slides>
+    </div>
+</ion-content>
