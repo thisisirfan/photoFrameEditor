@@ -18,10 +18,14 @@
             Preview
             <ion-icon name="eye"></ion-icon>
         </ion-button>
-        <ion-button size="small" *ngIf="enableReset" color="light" (click)="resetImage()">
+        <ion-button size="small" color="primary" (click)="previewTextModal()">
+            Add Text
+            <ion-icon name="text"></ion-icon>
+        </ion-button>
+        <!-- <ion-button size="small" *ngIf="enableReset" color="light" (click)="resetImage()">
             Reset
             <ion-icon name="refresh"></ion-icon>
-        </ion-button>
+        </ion-button> -->
         <!-- <ion-button color="light" (click)="clearCanvas()">
             <ion-icon name="trash"></ion-icon>
         </ion-button> -->
@@ -31,11 +35,14 @@
     <div id="frame-wrapper1" [ngStyle]="{'max-height': frameMeta.height+'px','max-width': frameMeta.width+'px'}">
         <img [src]="currentFrame" alt="final-image" id="frame-img">
         <div id="gesture-area" [ngStyle]="{'height': ImageMeta.height+'px','width': ImageMeta.width+'px'}" class="draggable">
-            <img src="assets/images/flower.png" id="scale-element">
+            <img [src]="sourceImage" id="scale-element">
         </div>
+        {{frameTextData?.size}}
+        <div class="draggable" [ngStyle]="{'font-size': frameTextData.size+'px', 'color': frameTextData.color, 'font-family': frameTextData.family}" id="frame-text" *ngIf="frameTextData!==null">{{frameTextData.text}}</div>
         <img [src]="sourceImage" id="img-element-orig">
     </div>
     <div class="frame-slide-wrapper" [ngClass]="{'bottomSheetOpen': bottomSheetOpen}">
+        <label>More Frame</label>
         <ion-icon (click)="toggleBottomSheet()" name="ios-menu"></ion-icon>
         <ion-slides pager="true" [options]="slideOpts">
             <ion-slide *ngFor="let frame of frames" (click)="selectFrame(frame)">

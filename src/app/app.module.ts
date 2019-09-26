@@ -11,6 +11,9 @@ import { AppRoutingModule } from './app-routing.module';
 
 import { Camera } from '@ionic-native/Camera/ngx';
 import { File } from '@ionic-native/file/ngx';
+import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
+import { SocialSharing } from '@ionic-native/social-sharing/ngx';
+import { SocialShareService } from './providers/social-share.service';
 
 @NgModule({
   declarations: [AppComponent],
@@ -25,6 +28,9 @@ import { File } from '@ionic-native/file/ngx';
     SplashScreen,
     Camera,
     File,
+    AndroidPermissions,
+    SocialSharing,
+    SocialShareService,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],
   bootstrap: [AppComponent]

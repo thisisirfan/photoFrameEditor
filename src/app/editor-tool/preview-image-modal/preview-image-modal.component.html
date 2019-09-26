@@ -1,4 +1,12 @@
 <div text-center>
+    <ion-button color="success" (click)="saveImage()">
+        Download
+        <ion-icon name="download"></ion-icon>
+    </ion-button>
+    <ion-button *ngIf="canShare" color="primary" (click)="shareImage()">
+        Share
+        <ion-icon name="share"></ion-icon>
+    </ion-button>
     <ion-button color="light" (click)="dismiss()">
         <ion-icon name="close"></ion-icon>
     </ion-button>

@@ -1,0 +1,58 @@
+<div text-center>
+    <ion-button color="light" (click)="dismiss()">
+        <ion-icon name="close"></ion-icon>
+    </ion-button>
+
+    <form>
+        <ion-grid>
+            <ion-row>
+                <ion-col size="12">
+                    <ion-item>
+                        <ion-label position="floating">Text</ion-label>
+                        <ion-input name="text" [(ngModel)]="textMeta.text"></ion-input>
+                    </ion-item>
+                </ion-col>
+                <ion-col size="12">
+                    <ion-item>
+                        <ion-label>Font Family</ion-label>
+                        <ion-select placeholder="Select Font" name="family" [(ngModel)]="textMeta.family">
+                            <ion-select-option value="arial">Arial</ion-select-option>
+                            <ion-select-option value="sans-serif">Sans sarif</ion-select-option>
+                            <ion-select-option value="roboto">Roboto</ion-select-option>
+                            <ion-select-option value="lato">Lato</ion-select-option>
+                            <ion-select-option value="times">Times</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-col>
+                <ion-col size="12">
+                    <ion-item>
+                        <ion-label>Font Size</ion-label>
+                        <ion-select placeholder="Select Font Size" name="size" [(ngModel)]="textMeta.size">
+                            <ion-select-option value="6">6px</ion-select-option>
+                            <ion-select-option value="8">8px</ion-select-option>
+                            <ion-select-option value="10">10px</ion-select-option>
+                            <ion-select-option value="12">12px</ion-select-option>
+                            <ion-select-option value="16">16px</ion-select-option>
+                            <ion-select-option value="20">20px</ion-select-option>
+                            <ion-select-option value="24">24px</ion-select-option>
+                            <ion-select-option value="28">28px</ion-select-option>
+                            <ion-select-option value="32">32px</ion-select-option>
+                            <ion-select-option value="38">38px</ion-select-option>
+                            <ion-select-option value="42">42px</ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </ion-col>
+                <ion-col size="12">
+                    <color-picker [hexColor]="textMeta.color" (colorChanged)="setColor($event)" (colorTouchStart)="colorTouchStart()" (colorTouchEnd)="colorTouchEnd()"></color-picker>
+                </ion-col>
+                <ion-col size="12">
+
+                </ion-col>
+            </ion-row>
+        </ion-grid>
+        <ion-button expand="full" color="success" (click)="applyText()">
+            Apply Text
+            <ion-icon name="download"></ion-icon>
+        </ion-button>
+    </form>
+</div>

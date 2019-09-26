@@ -7,6 +7,8 @@ import { Routes, RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 
 import { EditorToolPage } from './editor-tool.page';
+import { FrameTextComponent } from './frame-text/frame-text.component';
+import { ColorPicker } from './frame-text/color-picker';
 
 const routes: Routes = [
   {
@@ -17,7 +19,9 @@ const routes: Routes = [
 
 @NgModule({
   entryComponents:[
-    PreviewImageModalComponent
+    PreviewImageModalComponent,
+    FrameTextComponent,
+    ColorPicker
   ],
   imports: [
     CommonModule,
@@ -25,6 +29,6 @@ const routes: Routes = [
     IonicModule,
     RouterModule.forChild(routes)
   ],
-  declarations: [EditorToolPage, PreviewImageModalComponent]
+  declarations: [EditorToolPage, PreviewImageModalComponent, FrameTextComponent, ColorPicker]
 })
 export class EditorToolPageModule {}
