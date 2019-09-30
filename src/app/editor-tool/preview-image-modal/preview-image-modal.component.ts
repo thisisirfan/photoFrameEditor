@@ -2,6 +2,7 @@ import { SocialShareService } from './../../providers/social-share.service';
 import { Component, OnInit, Input } from '@angular/core';
 import { NavParams, ModalController, Platform, ToastController } from '@ionic/angular';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
+import { AdmobService } from 'src/app/providers/admob.service';
 declare var window: any;
 
 @Component({
@@ -20,6 +21,7 @@ export class PreviewImageModalComponent implements OnInit {
     private platform: Platform,
     public toaster: ToastController,
     public share: SocialShareService,
+    public admobService: AdmobService,
     private androidPermissions: AndroidPermissions) {
   }
 
@@ -51,10 +53,14 @@ export class PreviewImageModalComponent implements OnInit {
   }
 
   downloadImageToGallery() {
+
     var params = { data: this.finalImage, prefix: 'frame_', format: 'JPG', quality: 80, mediaScanner: true };
     window.imageSaver.saveBase64Image(params,
       (filePath) => {
         this.presentToast();
+        setTimeout(() => {
+          this.admobService.interstatialAd();
+        }, 3000);
         this.canShare = true;
         this.shareImagePath = filePath;
         console.log('File saved on ' + filePath);

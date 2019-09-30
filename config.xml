@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="com.cent.frameeditor" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>PhotoFrame</name>
-    <description>An awesome Ionic/Cordova app.</description>
+    <description>Photo frame app.</description>
     <author email="hi@ionicframework.com" href="http://ionicframework.com/">Ionic Framework Team</author>
     <content src="index.html" />
     <access origin="*" />
@@ -108,5 +108,5 @@
     <plugin name="cordova-plugin-x-socialsharing" spec="5.6.0">
         <variable name="ANDROID_SUPPORT_V4_VERSION" value="24.1.1+" />
     </plugin>
-    <engine name="android" spec="7.1.4" />
+    <plugin name="cordova-plugin-firebasex" spec="3.0.6" />
 </widget>

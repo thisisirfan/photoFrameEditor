@@ -1,3 +1,4 @@
+import { AdmobService } from './../providers/admob.service';
 import { Component, ViewChild } from '@angular/core';
 import interact from 'interactjs';
 import { Camera, CameraOptions } from '@ionic-native/Camera/ngx';
@@ -64,7 +65,8 @@ export class EditorToolPage {
     private route: ActivatedRoute,
     private router: Router,
     private file: File,
-    public modalController: ModalController) {
+    public modalController: ModalController,
+    public admobService: AdmobService) {
     this.getFrames();
     let cameraType = this.route.snapshot.paramMap.get('id');
     this.selectCameraType(cameraType);
@@ -210,6 +212,7 @@ export class EditorToolPage {
   }
 
   async previewImageModal() {
+    this.admobService.interstatialAd();
     const modal = await this.modalController.create({
       component: PreviewImageModalComponent,
       componentProps: {
@@ -278,6 +281,7 @@ export class EditorToolPage {
     this.x_pos = overlayImage.x_pos;
     this.y_pos = overlayImage.y_pos;
     if (currentScale !== 1) {
+      currentScale = currentScale - 0.13;
       this.x_pos = (overlayImage.x_pos * currentScale) / 2;
       this.y_pos = (overlayImage.y_pos * currentScale) / 2;
     }
@@ -295,8 +299,8 @@ export class EditorToolPage {
 
   drawText() {
     let context = this.canvasElement.getContext('2d');
-    context.font = this.frameTextData.size + "px impact";
-    context.textAlign = 'center';
+    context.font = this.frameTextData.size + "px "+this.frameTextData.family;
+    /* context.textAlign = 'center'; */
     context.fillStyle = this.frameTextData.color;
     let scaleElement = document.getElementById('scale-element');
 
@@ -365,7 +369,7 @@ export class EditorToolPage {
   /*Camera & Gallery Option */
   pickImage(sourceType) {
     const options: CameraOptions = {
-      quality: 50,
+      quality: 90,
       sourceType: sourceType,
       destinationType: this.camera.DestinationType.DATA_URL,
       mediaType: this.camera.MediaType.PICTURE

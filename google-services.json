@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "232399525659",
+    "firebase_url": "https://photoframe-editor-temp.firebaseio.com",
+    "project_id": "photoframe-editor-temp",
+    "storage_bucket": "photoframe-editor-temp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:232399525659:android:2972266099ec82eca025be",
+        "android_client_info": {
+          "package_name": "com.cent.frameeditor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "232399525659-j7a2brb3anaglmef4ds7adlnf490t4b3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClRgnfJSloT9HnZ2mGp_Aj6H7f41PTuPQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "232399525659-j7a2brb3anaglmef4ds7adlnf490t4b3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
