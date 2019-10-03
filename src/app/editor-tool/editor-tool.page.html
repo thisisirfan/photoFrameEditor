@@ -1,11 +1,14 @@
 <ion-header>
     <ion-toolbar>
         <ion-buttons slot="start">
-            <ion-back-button defaultHref="/home"></ion-back-button>
+            <ion-icon color="secondary" size="large" name="arrow-back" (click)="promptExitAlert()"></ion-icon>
         </ion-buttons>
         <ion-title>
             Editor
         </ion-title>
+        <ion-button slot="end" size="small" *ngIf="enableReset" color="light" (click)="resetImage()">
+            Reset
+        </ion-button>
         <ion-button slot="end" size="small" fill="clear" (click)="selectImage()">
             <ion-icon size="large" name="camera"></ion-icon>
         </ion-button>
@@ -13,22 +16,31 @@
 </ion-header>
 
 <ion-content>
-    <div id="action-btn" text-center>
+    <div id="action-btn" class="ion-text-center">
         <ion-button size="small" *ngIf="enablePreview" color="secondary" (click)="compileEditing()">
             Preview
             <ion-icon name="eye"></ion-icon>
         </ion-button>
         <ion-button size="small" color="primary" (click)="previewTextModal()">
-            Add Text
+            Text
             <ion-icon name="text"></ion-icon>
         </ion-button>
-        <!-- <ion-button size="small" *ngIf="enableReset" color="light" (click)="resetImage()">
-            Reset
-            <ion-icon name="refresh"></ion-icon>
-        </ion-button> -->
+        <ion-button size="small" color="light" (click)="showOpacity = !showOpacity">
+            Opacity
+            <ion-icon name="contrast"></ion-icon>
+        </ion-button>
         <!-- <ion-button color="light" (click)="clearCanvas()">
             <ion-icon name="trash"></ion-icon>
         </ion-button> -->
+        <ion-list *ngIf="showOpacity">
+            <ion-item>
+                <ion-label>Opacity</ion-label>
+                <ion-range name="imageOpacity" [(ngModel)]="imageOpacity" min="0" max="1" color="secondary" step="0.1" value="1" (ionChange)="setOpacity()">
+                    <ion-label slot="start">0</ion-label>
+                    <ion-label slot="end">1</ion-label>
+                </ion-range>
+            </ion-item>
+        </ion-list>
     </div>
     <!-- <img *ngIf="finalImage" [src]="finalImage" alt="final-image" id="final-image"> -->
     <canvas #photocanvas></canvas>
@@ -37,9 +49,8 @@
         <div id="gesture-area" [ngStyle]="{'height': ImageMeta.height+'px','width': ImageMeta.width+'px'}" class="draggable">
             <img [src]="sourceImage" id="scale-element">
         </div>
-        {{frameTextData?.size}}
         <div class="draggable" [ngStyle]="{'font-size': frameTextData.size+'px', 'color': frameTextData.color, 'font-family': frameTextData.family}" id="frame-text" *ngIf="frameTextData!==null">{{frameTextData.text}}</div>
-        <img [src]="sourceImage" id="img-element-orig">
+        <img [src]="sourceImage" id="img-element-orig" [ngStyle]="{'opacity':imageOpacity}">
     </div>
     <div class="frame-slide-wrapper" [ngClass]="{'bottomSheetOpen': bottomSheetOpen}">
         <label>More Frame</label>

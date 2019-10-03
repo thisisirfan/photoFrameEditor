@@ -2,7 +2,7 @@ import { AdmobService } from './../providers/admob.service';
 import { Component, ViewChild } from '@angular/core';
 import interact from 'interactjs';
 import { Camera, CameraOptions } from '@ionic-native/Camera/ngx';
-import { ActionSheetController, ModalController } from '@ionic/angular';
+import { ActionSheetController, ModalController, AlertController, NavController, Platform } from '@ionic/angular';
 import { File } from '@ionic-native/file/ngx';
 import { Router, ActivatedRoute } from '@angular/router';
 import { PreviewImageModalComponent } from './preview-image-modal/preview-image-modal.component';
@@ -18,8 +18,15 @@ var overlayImage = {
   height: 0,
   width: 0,
   x_text: 0,
-  y_text: 0
+  y_text: 0,
+  x_temp_pos: 0,
+  y_temp_pos: 0,
 };
+
+/* var angleScale = {
+  angle: 0,
+  scale: 1
+} */
 
 @Component({
   selector: 'app-editor-tool',
@@ -33,11 +40,14 @@ export class EditorToolPage {
   frameMeta: any = { height: 0, width: 0 };
   ImageMeta: any = { height: 0, width: 0 };
   frames: any = [];
-  currentFrame = 'assets/images/christmas-minions-fram.png';
-  sourceImage = 'assets/images/baby2.jpg';
+  currentFrame = '';
+  sourceImage = 'assets/images/cake.jpg';
   enableReset: boolean = true;
   enablePreview: boolean = true;
   frameTextData: any = null;
+  imageOpacity:any = 1;
+  showOpacity:boolean = false;
+  public unsubscribeBackEvent: any;
 
   slideOpts = {
     initialSlide: 1,
@@ -66,8 +76,12 @@ export class EditorToolPage {
     private router: Router,
     private file: File,
     public modalController: ModalController,
-    public admobService: AdmobService) {
+    public admobService: AdmobService,
+    public navCtrl: NavController,
+    public platform: Platform,
+    public alertController: AlertController) {
     this.getFrames();
+    this.currentFrame = 'assets/images/frames/'+this.frames[0];
     let cameraType = this.route.snapshot.paramMap.get('id');
     this.selectCameraType(cameraType);
   }
@@ -111,6 +125,12 @@ export class EditorToolPage {
     // target elements with the "draggable" class
     interact('.draggable')
       .gesturable({
+        modifiers: [
+          interact.modifiers.restrict({
+            restriction: 'parent',
+            endOnly: true
+          })
+        ],
         onstart: function (event) {
           angleScale.angle -= event.angle
           clearTimeout(resetTimeout)
@@ -120,14 +140,16 @@ export class EditorToolPage {
           // document.body.appendChild(new Text(event.scale))
           var currentAngle = event.angle + angleScale.angle
           var currentScale = event.scale * angleScale.scale
+          console.log('event angle:'+event.angle,'angle scale:',angleScale.angle)
           scaleElement.style.webkitTransform =
             scaleElement.style.transform =
-            'rotate(' + currentAngle + 'deg)' + 'scale(' + currentScale + ')';
+            'rotate(' + currentAngle + 'deg)' + 'scale(1)';
 
           overlayImage.angle = currentAngle;
           overlayImage.scale = currentScale;
           //console.log('its scaling and rotating',overlayImage)
           // uses the dragMoveListener from the draggable demo above
+          //pinchListener(event);
           dragMoveListener(event)
         },
         onend: function (event) {
@@ -152,14 +174,54 @@ export class EditorToolPage {
           })
         ]
       });
+    
+    function resetScaleRotate () {
+      console.log('reset triggered')
+      scaleElement.style.webkitTransform =
+        scaleElement.style.transform =
+        'scale(1)'
+    
+      angleScale.angle = 0
+      angleScale.scale = 1
+    }
+
+    function getOffsetLeft(elem) {
+      var offsetLeft = 0;
+      do {
+        if (!isNaN(elem.offsetLeft)) {
+          offsetLeft += elem.offsetLeft;
+        }
+      } while (elem = elem.offsetParent);
+      return offsetLeft;
+    }
+
+    function getOffsetTop(elem) {
+      var offsetTop = 0;
+      do {
+        if (!isNaN(elem.offsetTop)) {
+          offsetTop += elem.offsetTop;
+        }
+      } while (elem = elem.offsetParent);
+      return offsetTop;
+    }
+
+    function calculateOffsetDistance(event) {
+      let leftWindowDistance = getOffsetLeft(frameImg);
+      let topWindowDistance = getOffsetTop(frameImg);
+      let left = event.rect.left - leftWindowDistance;
+      let top = event.rect.top - topWindowDistance;
+      //console.log(['left:'+left, 'top:'+top])
+      overlayImage.x_temp_pos = left;
+      overlayImage.y_temp_pos = top;
+    }
 
     var currentImageAngle = 0;
     var currentImageScale = 0;
 
     function dragMoveListener(event) {
-      console.log('event:', event)
-
+      //console.log('event:', event)
       var target = event.target
+
       // keep the dragged position in the data-x/data-y attributes
       var x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
       var y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
@@ -170,10 +232,18 @@ export class EditorToolPage {
           target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
         target.setAttribute('data-x', x);
         target.setAttribute('data-y', y);
-        overlayImage.x_text = x;
-        overlayImage.y_text = y;
+        
+        let leftWindowDistance = getOffsetLeft(frameImg);
+        let topWindowDistance = getOffsetTop(frameImg);
+        let left = event.rect.left - leftWindowDistance;
+        let top = event.rect.top - topWindowDistance;
+        //console.log(top,left)
+        overlayImage.x_text = left;
+        overlayImage.y_text = top;
         return;
       }
+
+      calculateOffsetDistance(event);
 
       overlayImage.x_pos = x;
       overlayImage.y_pos = y;
@@ -186,13 +256,6 @@ export class EditorToolPage {
 
       currentImageAngle = eventAngle + angleScale.angle;
       currentImageScale = eventScale * angleScale.scale;
-
-      //console.log(eventAngle, eventScale);
-
-      // translate the element
-      /* target.style.webkitTransform =
-        target.style.transform =
-        'translate(' + overlayImage.x_pos + 'px, ' + overlayImage.y_pos + 'px)'; */
 
       let transformedData = 'translate(' + overlayImage.x_pos + 'px, ' + overlayImage.y_pos + 'px) ' + 'rotate(' + currentImageAngle + 'deg) ' + 'scale(' + currentImageScale + ')';
       //console.log(transformedData);
@@ -230,7 +293,7 @@ export class EditorToolPage {
 
   resetImage() {
     this.clearCanvas();
-
+    //console.log(window)
     this.frameTextData = null;
     let orignalImg: any = document.getElementById('img-element-orig');
     let opaqueImg: any = document.getElementById('gesture-area');
@@ -246,7 +309,11 @@ export class EditorToolPage {
 
     scaleElement.style.webkitTransform =
       scaleElement.style.transform =
-      'rotate(0deg)' + 'scale(1)';
+      'scale(1)';
+    scaleElement.classList.add('reset');
+    /* angleScale.angle = 0
+    angleScale.scale = 1 */
+    
     //console.log('before reset:', overlayImage)
     overlayImage = {
       angle: 0,
@@ -256,9 +323,12 @@ export class EditorToolPage {
       height: this.ImageMeta.height,
       width: this.ImageMeta.width,
       x_text: 0,
-      y_text: 0
+      y_text: 0,
+      x_temp_pos: 0,
+      y_temp_pos: 0,
     };
   }
+
   x_pos: any;
   y_pos: any;
   drawSourceImage() {
@@ -267,25 +337,39 @@ export class EditorToolPage {
     //overlay image
     let sourceImg: any = document.getElementById('img-element-orig');
     let currentScale = (overlayImage.scale);
-    console.table([
-      { 'natural width': sourceImg.naturalWidth },
-      { 'natural height': sourceImg.naturalHeight },
-      { 'Scale': overlayImage.scale },
-      { 'Pos x': overlayImage.x_pos },
-      { 'Pos y': overlayImage.y_pos },
-    ]);
-    /* let size = Math.min(sourceImg.width,sourceImg.height);
-    let x = (sourceImg.width - size*overlayImage.scale) /2;
-    let y = (sourceImg.height - size*overlayImage.scale) /2;
-    console.log('size:'+size+' - x:'+x+' - y:'+y); */
-    this.x_pos = overlayImage.x_pos;
-    this.y_pos = overlayImage.y_pos;
+
+    this.x_pos = overlayImage.x_temp_pos;
+    this.y_pos = overlayImage.y_temp_pos;
+
+    let sourceWidth = sourceImg.naturalWidth;
+    let sourceHeight = sourceImg.naturalHeight;
+
+    /* currentScale = .46 */
     if (currentScale !== 1) {
-      currentScale = currentScale - 0.13;
-      this.x_pos = (overlayImage.x_pos * currentScale) / 2;
-      this.y_pos = (overlayImage.y_pos * currentScale) / 2;
+      /* currentScale = currentScale-0.13; */
+      sourceWidth = (sourceImg.naturalWidth * currentScale);
+      sourceHeight = (sourceImg.naturalHeight * currentScale);
+     /*  if (currentScale < 1) {
+        sourceWidth = (sourceImg.naturalWidth * currentScale);
+        sourceHeight = (sourceImg.naturalHeight * currentScale);
+      } else {
+        sourceWidth = (sourceImg.naturalWidth * currentScale) / 2;
+        sourceHeight = (sourceImg.naturalHeight * currentScale) / 2;
+      } */
     }
-    context.drawImage(sourceImg, this.x_pos, this.y_pos, (sourceImg.naturalWidth * currentScale), (sourceImg.naturalHeight * currentScale));
+
+    console.table([
+      ['natural width', sourceImg.naturalWidth],
+      ['natural height', sourceImg.naturalHeight],
+      ['Updated width', overlayImage.width],
+      ['Updated height', overlayImage.height],
+      ['Scale', overlayImage.scale],
+      ['Pos x', this.x_pos],
+      ['Pos y', this.y_pos],
+      ['Source Width & Height', sourceWidth + ',' + sourceHeight]
+    ]);
+
+    context.drawImage(sourceImg, this.x_pos, this.y_pos, sourceWidth, sourceHeight);
   }
 
   drawFrameImage() {
@@ -299,14 +383,16 @@ export class EditorToolPage {
 
   drawText() {
     let context = this.canvasElement.getContext('2d');
-    context.font = this.frameTextData.size + "px "+this.frameTextData.family;
+    context.font = this.frameTextData.size + "px " + this.frameTextData.family;
     /* context.textAlign = 'center'; */
     context.fillStyle = this.frameTextData.color;
     let scaleElement = document.getElementById('scale-element');
 
-    console.log(overlayImage)
-    //context.fillText(this.frameTextData.text, this.canvasElement.width / 2, this.canvasElement.height * 0.8);
-    context.fillText(this.frameTextData.text, overlayImage.x_text*2, overlayImage.y_text*2);
+    context.fillText(this.frameTextData.text, (overlayImage.x_text)+30, (overlayImage.y_text)+30);
+  }
+
+  setOpacity(){
+    /* console.log(this.imageOpacity); */
   }
 
   compileEditing() {
@@ -325,8 +411,10 @@ export class EditorToolPage {
       //draw source image
       //apply image angle if applied
       context.save(); // save current state
+      /* overlayImage.angle = -5.1; */
       context.rotate(overlayImage.angle * Math.PI / 180);
-      //apply image scale if applied
+      //apply image opacity if applied
+      context.globalAlpha = this.imageOpacity;
       this.drawSourceImage();
 
       //reset angle for frame
@@ -346,18 +434,31 @@ export class EditorToolPage {
   }
 
   selectFrame(frame) {
+    let frameImg: any;
+    frameImg = document.getElementById('frame-img')
+    setTimeout(() => {
+      this.frameMeta.height = frameImg.naturalHeight;
+      this.frameMeta.width = frameImg.naturalWidth;
+    }, 100);
     this.currentFrame = 'assets/images/frames/' + frame;
   }
 
   getFrames() {
     this.frames = [
-      'birthday.png',
-      'christmas-cold.png',
-      'christmas-evening.png',
-      'christmas-minions.png',
-      'micky-mouse.png',
-      'valentines.png',
-      'wedding.png'
+      'wedding/wedding-1.png',
+      'wedding/wedding-2.png',
+      'wedding/wedding-3.png',
+      'wedding/wedding-4.png',
+      'wedding/wedding-5.png',
+      'wedding/wedding-6.png',
+      'wedding/wedding-7.png',
+      'wedding/wedding-8.png',
+      'wedding/wedding-9.png',
+      'wedding/wedding-10.png',
+      'wedding/wedding-11.png',
+      'wedding/wedding-12.png',
+      'wedding/wedding-13.png',
+      'wedding/wedding-14.png',
     ];
   }
 
@@ -402,6 +503,9 @@ export class EditorToolPage {
     i.onload = () => {
       this.ImageMeta.width = i.width;
       this.ImageMeta.height = i.height;
+
+      overlayImage.width = i.width;
+      overlayImage.height = i.height;
       console.log(i.width + ", " + i.height);
     };
     i.src = base64;
@@ -452,7 +556,7 @@ export class EditorToolPage {
 
   /*Text Functionality */
   async previewTextModal() {
-    console.log('send text',this.frameTextData)
+    console.log('send text', this.frameTextData)
     const modal = await this.modalController.create({
       component: FrameTextComponent,
       componentProps: {
@@ -466,6 +570,59 @@ export class EditorToolPage {
         console.log('form data', res.data)
       });
     return await modal.present();
+  }
+
+  showAlertMessage = true;
+
+  ngOnInit(){
+    this.initializeBackButtonCustomHandler();
+  }
+  
+  ionViewWillLeave() {
+    // Unregister the custom back button action for this page
+    this.unsubscribeBackEvent && this.unsubscribeBackEvent();
+
+    /* if (this.showAlertMessage) {
+      this.promptExitAlert();
+      return;
+    } */
+  }
+
+  initializeBackButtonCustomHandler(): void {
+    this.unsubscribeBackEvent = this.platform.backButton.subscribeWithPriority(999999,  () => {
+      this.promptExitAlert();
+    });
+    /* here priority 101 will be greater then 100 
+    if we have registerBackButtonAction in app.component.ts */
+  }
+
+  async promptExitAlert() {
+    const alert = await this.alertController.create({
+      header: 'Editor',
+      message: 'Are you sure you want to leave editor?',
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          cssClass: 'secondary',
+          handler: (blah) => {
+            /* console.log('Confirm Cancel: blah'); */
+          }
+        }, {
+          text: 'Yes',
+          handler: () => {
+            this.exitPage();
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private exitPage() {
+    this.showAlertMessage = false;
+    this.navCtrl.navigateBack('/home');
   }
 
 }

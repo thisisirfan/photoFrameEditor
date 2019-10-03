@@ -21,6 +21,7 @@ export class AdmobService {
   }
 
   bannerAd(){
+    return;
     const bannerConfig: any = {
       adId: this.bannerAdId,
       isTesting: true,
@@ -32,6 +33,7 @@ export class AdmobService {
   }
 
   interstatialAd(){
+    return;
     const interstatialConfig:any = {
       adId: this.interstatialAdId,
       isTesting: true,
