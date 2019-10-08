@@ -6,7 +6,6 @@ import { ActionSheetController, ModalController, AlertController, NavController,
 import { File } from '@ionic-native/file/ngx';
 import { Router, ActivatedRoute } from '@angular/router';
 import { PreviewImageModalComponent } from './preview-image-modal/preview-image-modal.component';
-import resizebase64 from 'resize-base64';
 import { FrameTextComponent } from './frame-text/frame-text.component';
 
 declare var window: any;
@@ -21,12 +20,8 @@ var overlayImage = {
   y_text: 0,
   x_temp_pos: 0,
   y_temp_pos: 0,
+  isReset: false
 };
-
-/* var angleScale = {
-  angle: 0,
-  scale: 1
-} */
 
 @Component({
   selector: 'app-editor-tool',
@@ -45,8 +40,8 @@ export class EditorToolPage {
   enableReset: boolean = true;
   enablePreview: boolean = true;
   frameTextData: any = null;
-  imageOpacity:any = 1;
-  showOpacity:boolean = false;
+  imageOpacity: any = 1;
+  showOpacity: boolean = false;
   public unsubscribeBackEvent: any;
 
   slideOpts = {
@@ -81,7 +76,7 @@ export class EditorToolPage {
     public platform: Platform,
     public alertController: AlertController) {
     this.getFrames();
-    this.currentFrame = 'assets/images/frames/'+this.frames[0];
+    this.currentFrame = 'assets/images/frames/' + this.frames[0];
     let cameraType = this.route.snapshot.paramMap.get('id');
     this.selectCameraType(cameraType);
   }
@@ -94,7 +89,7 @@ export class EditorToolPage {
   }
 
   ionViewDidEnter() {
-
+    console.log('ion view entered')
     this.canvasElement = this.canvas.nativeElement;
     this.canvasElement.width = 500;
     this.canvasElement.height = 500;
@@ -137,24 +132,33 @@ export class EditorToolPage {
           scaleElement.classList.remove('reset')
         },
         onmove: function (event) {
-          // document.body.appendChild(new Text(event.scale))
+          if (overlayImage.isReset === true) {
+            resetTimeout = setTimeout(function () {
+              resetScaleRotate();
+            }, 1000)
+            scaleElement.classList.add('reset')
+            overlayImage.isReset = false;
+          }
           var currentAngle = event.angle + angleScale.angle
           var currentScale = event.scale * angleScale.scale
-          console.log('event angle:'+event.angle,'angle scale:',angleScale.angle)
+          //console.log('event angle:' + event.angle, 'angle scale:', angleScale.angle)
           scaleElement.style.webkitTransform =
             scaleElement.style.transform =
             'rotate(' + currentAngle + 'deg)' + 'scale(1)';
 
           overlayImage.angle = currentAngle;
           overlayImage.scale = currentScale;
-          //console.log('its scaling and rotating',overlayImage)
-          // uses the dragMoveListener from the draggable demo above
-          //pinchListener(event);
+          //console.log('its scaling and rotating', overlayImage)
           dragMoveListener(event)
         },
         onend: function (event) {
           angleScale.angle = angleScale.angle + event.angle
           angleScale.scale = angleScale.scale * event.scale
+          setTimeout(function() {
+            calculateOffsetDistance(event)
+          }, 2000);
+          /* resetTimeout = setTimeout(resetScaleRotate, 1000)
+          scaleElement.classList.add('reset') */
         }
       })
       .draggable({
@@ -174,15 +178,23 @@ export class EditorToolPage {
           })
         ]
       });
-    
-    function resetScaleRotate () {
+
+    function resetScaleRotate() {
       console.log('reset triggered')
-      scaleElement.style.webkitTransform =
-        scaleElement.style.transform =
+      let scaleElement1 = document.getElementById('scale-element')
+      let opaqueImg1: any = document.getElementById('gesture-area');
+      let orignalImg1: any = document.getElementById('img-element-orig');
+      orignalImg1.style.webkitTransform =
+        orignalImg1.style.webkitTransform =
+        opaqueImg1.style.webkitTransform =
+        opaqueImg1.style.webkitTransform =
+        scaleElement1.style.transform =
+        scaleElement1.style.webkitTransform =
+        scaleElement1.style.transform =
         'scale(1)'
-    
-      angleScale.angle = 0
-      angleScale.scale = 1
+      angleScale.angle = 0;
+      angleScale.scale = 1;
+      scaleElement1.classList.add('reset')
     }
 
     function getOffsetLeft(elem) {
@@ -210,6 +222,7 @@ export class EditorToolPage {
       let topWindowDistance = getOffsetTop(frameImg);
       let left = event.rect.left - leftWindowDistance;
       let top = event.rect.top - topWindowDistance;
+      //console.log('event:',event)
       //console.log(['left:'+left, 'top:'+top])
       overlayImage.x_temp_pos = left;
       overlayImage.y_temp_pos = top;
@@ -220,6 +233,14 @@ export class EditorToolPage {
 
     function dragMoveListener(event) {
       //console.log('event:', event)
+      if (overlayImage.isReset === true) {
+        resetScaleRotate();
+        angleScale.angle = 0;
+        angleScale.scale = 1;
+        overlayImage.isReset = false;
+      } else {
+        //console.log('not triggering reset scale')
+      }
       var target = event.target
 
       // keep the dragged position in the data-x/data-y attributes
@@ -232,7 +253,7 @@ export class EditorToolPage {
           target.style.transform = 'translate(' + x + 'px, ' + y + 'px)';
         target.setAttribute('data-x', x);
         target.setAttribute('data-y', y);
-        
+
         let leftWindowDistance = getOffsetLeft(frameImg);
         let topWindowDistance = getOffsetTop(frameImg);
         let left = event.rect.left - leftWindowDistance;
@@ -251,11 +272,14 @@ export class EditorToolPage {
       let eventAngle;
       let eventScale;
 
+      //console.log('event scale' + event.scale, 'angleScale.scale:' + angleScale.scale)
       if (typeof event.angle === 'undefined') eventAngle = 0; else eventAngle = event.angle;
       if (typeof event.scale === 'undefined') eventScale = 1; else eventScale = event.scale;
 
       currentImageAngle = eventAngle + angleScale.angle;
       currentImageScale = eventScale * angleScale.scale;
+
+      //console.log('currentImageScale:', currentImageScale)
 
       let transformedData = 'translate(' + overlayImage.x_pos + 'px, ' + overlayImage.y_pos + 'px) ' + 'rotate(' + currentImageAngle + 'deg) ' + 'scale(' + currentImageScale + ')';
       //console.log(transformedData);
@@ -292,9 +316,10 @@ export class EditorToolPage {
   }
 
   resetImage() {
-    this.clearCanvas();
+    if (this.finalImage)
+      this.clearCanvas();
     //console.log(window)
-    this.frameTextData = null;
+    //this.frameTextData = null;
     let orignalImg: any = document.getElementById('img-element-orig');
     let opaqueImg: any = document.getElementById('gesture-area');
     let scaleElement = document.getElementById('scale-element')
@@ -311,9 +336,7 @@ export class EditorToolPage {
       scaleElement.style.transform =
       'scale(1)';
     scaleElement.classList.add('reset');
-    /* angleScale.angle = 0
-    angleScale.scale = 1 */
-    
+
     //console.log('before reset:', overlayImage)
     overlayImage = {
       angle: 0,
@@ -326,6 +349,7 @@ export class EditorToolPage {
       y_text: 0,
       x_temp_pos: 0,
       y_temp_pos: 0,
+      isReset: true
     };
   }
 
@@ -349,13 +373,13 @@ export class EditorToolPage {
       /* currentScale = currentScale-0.13; */
       sourceWidth = (sourceImg.naturalWidth * currentScale);
       sourceHeight = (sourceImg.naturalHeight * currentScale);
-     /*  if (currentScale < 1) {
-        sourceWidth = (sourceImg.naturalWidth * currentScale);
-        sourceHeight = (sourceImg.naturalHeight * currentScale);
-      } else {
-        sourceWidth = (sourceImg.naturalWidth * currentScale) / 2;
-        sourceHeight = (sourceImg.naturalHeight * currentScale) / 2;
-      } */
+      /*  if (currentScale < 1) {
+         sourceWidth = (sourceImg.naturalWidth * currentScale);
+         sourceHeight = (sourceImg.naturalHeight * currentScale);
+       } else {
+         sourceWidth = (sourceImg.naturalWidth * currentScale) / 2;
+         sourceHeight = (sourceImg.naturalHeight * currentScale) / 2;
+       } */
     }
 
     console.table([
@@ -388,10 +412,10 @@ export class EditorToolPage {
     context.fillStyle = this.frameTextData.color;
     let scaleElement = document.getElementById('scale-element');
 
-    context.fillText(this.frameTextData.text, (overlayImage.x_text)+30, (overlayImage.y_text)+30);
+    context.fillText(this.frameTextData.text, (overlayImage.x_text) + 30, (overlayImage.y_text) + 30);
   }
 
-  setOpacity(){
+  setOpacity() {
     /* console.log(this.imageOpacity); */
   }
 
@@ -473,28 +497,20 @@ export class EditorToolPage {
       quality: 90,
       sourceType: sourceType,
       destinationType: this.camera.DestinationType.DATA_URL,
-      mediaType: this.camera.MediaType.PICTURE
+      mediaType: this.camera.MediaType.PICTURE,
+      targetWidth: 800,
+      targetHeight: 800
     }
-    this.camera.getPicture(options).then((imageData) => {
+    this.camera.getPicture(options).then(async (imageData) => {
       this.resetImage();
       //console.log('image data:',imageData);
       let base64Image = 'data:image/jpeg;base64,' + imageData;
 
-      //this.sourceImage = this.resizeBase64(base64Image,800,800);
-      //this.resizeBase64(base64Image,800,800);
       this.sourceImage = base64Image;
-      console.log('got resized image')
-      this.resizeGesureArea(base64Image);
+      this.resizeGesureArea(this.sourceImage);
     }, (err) => {
       // Handle error
     });
-  }
-
-  //resize base64 image
-  resizeBase64(base64, maxWidth, maxHeight) {
-    let img = resizebase64(base64, maxWidth, maxHeight);
-    console.log('resize done')
-    return img;
   }
 
   //resize gensure area according to selected image size
@@ -574,10 +590,10 @@ export class EditorToolPage {
 
   showAlertMessage = true;
 
-  ngOnInit(){
+  ngOnInit() {
     this.initializeBackButtonCustomHandler();
   }
-  
+
   ionViewWillLeave() {
     // Unregister the custom back button action for this page
     this.unsubscribeBackEvent && this.unsubscribeBackEvent();
@@ -589,7 +605,7 @@ export class EditorToolPage {
   }
 
   initializeBackButtonCustomHandler(): void {
-    this.unsubscribeBackEvent = this.platform.backButton.subscribeWithPriority(999999,  () => {
+    this.unsubscribeBackEvent = this.platform.backButton.subscribeWithPriority(999999, () => {
       this.promptExitAlert();
     });
     /* here priority 101 will be greater then 100 

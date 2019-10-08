@@ -10,6 +10,7 @@ import { ColorPicker } from './color-picker';
 export class FrameTextComponent implements OnInit {
 
   @Input() frameTextData: any;
+  textAngle:any = 0;
   textMeta:any = {text:'',family:'arial',size:16, color:'#FF0000'};
   constructor(private modalCtrl: ModalController) {
     console.log('text',this.frameTextData)
@@ -30,6 +31,10 @@ export class FrameTextComponent implements OnInit {
 
   setColor(e){
     this.textMeta.color = e;
+  }
+
+  setTextAngle(){
+    return 'rotate('+this.textAngle+'deg)'
   }
 
   colorTouchEnd(){}

@@ -16,7 +16,7 @@ export class HomePage {
       class: 'camera-menu-item'
     },
     {
-      title: 'Gallery',
+      title: 'Choose Gallery',
       url: '/editor-tool/2',
       icon: 'images',
       image: '/assets/icon/gallery.png',

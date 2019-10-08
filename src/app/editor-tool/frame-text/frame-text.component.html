@@ -46,8 +46,19 @@
                     <color-picker [hexColor]="textMeta.color" (colorChanged)="setColor($event)" (colorTouchStart)="colorTouchStart()" (colorTouchEnd)="colorTouchEnd()"></color-picker>
                 </ion-col>
                 <ion-col size="12">
-
+                    <div [ngStyle]="{'font-size': textMeta.size+'px', 'color': textMeta.color, 'font-family': textMeta.family, 'transform':'rotate('+textAngle+'deg)'}" id="frame-text" *ngIf="textMeta!==null">{{textMeta.text}}</div>
                 </ion-col>
+                <!-- <ion-col size="12">
+                    <ion-list *ngIf="textMeta.text!==''">
+                        <ion-item>
+                            <ion-label>Text Angle</ion-label>
+                            <ion-range id="textAngle" name="textAngle" [(ngModel)]="textAngle" min="0" max="360" color="secondary" step="0.1" value="1">
+                                <ion-label slot="start">0</ion-label>
+                                <ion-label slot="end">360</ion-label>
+                            </ion-range>
+                        </ion-item>
+                    </ion-list>
+                </ion-col> -->
             </ion-row>
         </ion-grid>
         <ion-button expand="full" color="success" (click)="applyText()">
